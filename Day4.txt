@@ -1,0 +1,29 @@
+##Pipeline script to get the credentails from Jenkins
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "your-dockerhub-username/your-image"
+    }
+
+    stages {
+        stage('Login to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    sh '''
+                        echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Build and Push Image') {
+            steps {
+                sh '''
+                    docker build -t $DOCKER_IMAGE .
+                    docker push $DOCKER_IMAGE
+                '''
+            }
+        }
+    }
+}
